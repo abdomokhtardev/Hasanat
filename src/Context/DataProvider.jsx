@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState, createContext, useContext, memo } from "react";
 
+// Import JSON directly to avoid fetch path errors
+import localData from "../../public/data.json";
+
 export const DataContext = createContext();
 
 const initialVal = localStorage.getItem("data")
@@ -23,25 +26,28 @@ const DataProvider = ({ children }) => {
   // Check Updeate LocalStorage And Set Data In States
 
   useEffect(() => {
-    const local = JSON.parse(localStorage.getItem("data")) || null;
+    const localAzkar = JSON.parse(localStorage.getItem("hasanat_azkar")) || null;
+    const localLessons = JSON.parse(localStorage.getItem("hasanat_lessons")) || null;
 
-    if (local && local.version) {
-      setLessons(local.lessons || []);
-      setAzkar(local.azkar || []);
-      setLoading(false);
-    }
+    if (localAzkar) setAzkar(localAzkar);
+    if (localLessons) setLessons(localLessons);
 
     async function fetchData() {
       try {
-        const res = await fetch("/data.json");
-        const data = await res.json();
-
-        if (!local || local.version !== data.version) {
-          localStorage.setItem("data", JSON.stringify(data));
-          setLessons(data.lessons || []);
-          setAzkar(data.azkar || []);
-        }
-
+        // Load Azkar from local JSON directly
+        setAzkar(localData.azkar || []);
+        localStorage.setItem("hasanat_azkar", JSON.stringify(localData.azkar || []));
+        
+        // Fetch Lessons from Firestore
+        const { collection, getDocs } = await import("firebase/firestore");
+        const { db } = await import("../firebase");
+        
+        const querySnapshot = await getDocs(collection(db, "series"));
+        const firestoreLessons = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        setLessons(firestoreLessons);
+        localStorage.setItem("hasanat_lessons", JSON.stringify(firestoreLessons));
+        
         setLoading(false);
       } catch (err) {
         console.error("Error fetching data:", err);

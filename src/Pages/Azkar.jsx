@@ -1,99 +1,152 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-
-import Card from "../Components/Card.jsx";
 import SwitchAzkar from "../Components/SwitchAzkar";
 import { useData } from "../hooks/UseData.js";
 import { useEffect, useState } from "react";
 import CountZkr from "../Components/CountZkr.jsx";
+import { motion } from "framer-motion";
 
-const init = localStorage.getItem("choiceZkr")
-  ? localStorage.getItem("choiceZkr")
-  : "";
-
-const initValCount = localStorage.getItem("countZkr")
-  ? JSON.parse(localStorage.getItem("countZkr"))
-  : [];
+const init = localStorage.getItem("choiceZkr") ? localStorage.getItem("choiceZkr") : "sabah";
+const initValCount = localStorage.getItem("countZkr") ? JSON.parse(localStorage.getItem("countZkr")) : [];
 
 const Azkar = () => {
   const { azkar, loading, Spinner } = useData();
   const [choice, setChoice] = useState(init);
   const [counter, setCounter] = useState(initValCount);
 
-  // Set Zkr Choice In LocalStorage
   useEffect(() => {
     localStorage.setItem("choiceZkr", choice);
   }, [choice]);
 
-  // Initial  Zkr Counter  In LocalStorage
-
   function resetZkrCount() {
-    if (!azkar[1]?.content?.length) return;
+    if (!azkar || !azkar[0] || !azkar[1]) return;
+    const len1 = azkar[0]?.content?.length || 0;
+    const len2 = azkar[1]?.content?.length || 0;
+    const maxLen = Math.max(len1, len2);
 
-    const countArr = Array.from({ length: azkar[1].content.length }, () => ({
+    const countArr = Array.from({ length: maxLen }, () => ({
       countMorning: 0,
       countEvening: 0,
     }));
-
     setCounter(countArr);
   }
 
-  //Check Time Every Minute To Reset Zkr Counter At Current Time
   useEffect(() => {
     function runDailyTask() {
       const now = new Date();
-      const targetHour = 12;
-      const targetMinute = 0;
-
-      if (now.getHours() === targetHour && now.getMinutes() === targetMinute) {
+      if (now.getHours() === 12 && now.getMinutes() === 0) {
         resetZkrCount();
       }
     }
-
     const interval = setInterval(runDailyTask, 30000);
-
     return () => clearInterval(interval);
   }, [azkar]);
 
-  // Check And Add Initial Value in LocalStorage
   useEffect(() => {
-    if (initValCount.length === 0 && azkar[1]?.content?.length > 0) {
+    if (initValCount.length === 0 && azkar && azkar.length >= 2) {
       resetZkrCount();
     }
   }, [azkar, initValCount]);
-
-  // Set Zkr Counter In LocalStorage When Change Counter
 
   useEffect(() => {
     localStorage.setItem("countZkr", JSON.stringify(counter));
   }, [counter]);
 
-  // Condition Show Loading
-
-  if (loading || !azkar) {
-    return Spinner();
+  if (loading || !azkar || azkar.length === 0) {
+    return (
+      <div className="pt-32 min-h-screen flex justify-center items-center bg-[var(--bg-main)]">
+        {loading ? Spinner() : <p className="text-[var(--text-muted)] font-tajawal">جاري تحميل الأذكار...</p>}
+      </div>
+    );
   }
+
+  const currentAzkarList = azkar[choice === "sabah" ? 0 : 1]?.content || [];
+
+  // Calculate Progress
+  const totalCountRequired = currentAzkarList.reduce((acc, zkr) => {
+    return acc + (parseInt(String(zkr.repeat).replace(/\D/g, '')) || 1);
+  }, 0);
+
+  const currentTotalCount = currentAzkarList.reduce((acc, _, index) => {
+    const val = choice === "masaa" ? (counter[index]?.countEvening || 0) : (counter[index]?.countMorning || 0);
+    const req = parseInt(String(currentAzkarList[index]?.repeat || "1").replace(/\D/g, '')) || 1;
+    return acc + Math.min(val, req);
+  }, 0);
+
+  const progressPercent = totalCountRequired === 0 ? 0 : Math.round((currentTotalCount / totalCountRequired) * 100);
+
   return (
-    <>
-      <article className="w-4/5 flex justify-center items-center gap-5 flex-wrap my-24">
-        <SwitchAzkar setChoice={setChoice} />
-        {azkar[choice == "sabah" ? 0 : 1].content.map((zkr, index) => (
-          <Card
-            key={index}
-            content={zkr.zekr}
-            repeat={`التكرار: ${zkr.repeat}`}
-            className={"flex-col text-center gap-8 p-4"}
-          >
-            <CountZkr
-              repeat={zkr.repeat}
-              counter={counter}
-              choice={choice}
-              setCounter={setCounter}
-              index={index}
-            />
-          </Card>
-        ))}
-      </article>
-    </>
+    <main className="min-h-screen pt-32 pb-24 bg-[var(--bg-main)] relative">
+      <div className="w-full max-w-4xl mx-auto px-4 flex flex-col">
+
+        {/* Rich Header */}
+        <div className="w-full mb-12 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-[var(--accent)] text-[var(--gold-main)] rounded-full flex items-center justify-center text-2xl mb-6 shadow-md border-2 border-[var(--gold-main)]/30">
+            <i className="fa-solid fa-hands-praying"></i>
+          </div>
+          <h1 className="text-4xl md:text-5xl text-[var(--text-main)] font-bold font-amiri mb-4">
+            الأذكار اليومية
+          </h1>
+          <p className="text-[var(--text-muted)] text-lg font-tajawal font-medium mb-10">
+            ألا بذكر الله تطمئن القلوب
+          </p>
+
+          <SwitchAzkar setChoice={setChoice} choice={choice} />
+
+          {/* Progress */}
+          <div className="w-full max-w-lg mt-10 flex flex-col gap-3">
+            <div className="flex justify-between text-sm text-[var(--text-muted)] font-tajawal font-bold">
+              <span>نسبة الإنجاز ({progressPercent}%)</span>
+              <span>{currentTotalCount} من {totalCountRequired}</span>
+            </div>
+            <div className="w-full h-2 bg-[var(--border-subtle)] rounded-full overflow-hidden shadow-inner">
+              <motion.div
+                className="h-full bg-[var(--gold-main)]"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Elegant Reading List - Smaller Text */}
+        <div className="w-full flex flex-col gap-6">
+          {currentAzkarList.map((zkr, index) => {
+            const req = parseInt(String(zkr.repeat).replace(/\D/g, '')) || 1;
+            const val = choice === "masaa" ? (counter[index]?.countEvening || 0) : (counter[index]?.countMorning || 0);
+            const isCompleted = val >= req;
+
+            return (
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={`${choice}-${index}`}
+                className={`w-full p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center card-glass transition-all duration-300 ${isCompleted ? "opacity-60 bg-[var(--accent-light)] border-[var(--accent)]/30" : "bg-[var(--bg-card)] border-[var(--border-subtle)]"
+                  }`}
+              >
+                <div className="flex-1 text-center md:text-right">
+                  <p className={`font-amiri text-lg md:text-xl leading-[2.2] md:leading-[2.2] ${isCompleted ? 'text-[var(--accent)]' : 'text-[var(--text-main)]'}`}>
+                    {zkr.zekr}
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex flex-col items-center justify-center pt-6 md:pt-0 border-t md:border-t-0 md:border-r border-[var(--border-subtle)] md:pr-8">
+                  <CountZkr
+                    choice={choice}
+                    setCounter={setCounter}
+                    index={index}
+                    isCompleted={isCompleted}
+                    currentCount={val}
+                    req={req}
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </main>
   );
 };
 

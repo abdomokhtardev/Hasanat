@@ -1,35 +1,29 @@
-/* eslint-disable no-unused-vars */
-import { motion } from "framer-motion";
-
-const SwitchAzkar = ({ setChoice }) => {
+const SwitchAzkar = ({ setChoice, choice }) => {
   const ButtonInfo = [
-    { label: "أذكار الصباح", Action: () => setChoice("sabah") },
-    { label: "أذكار المساء", Action: () => setChoice("masaa") },
+    { label: "أذكار الصباح", value: "sabah" },
+    { label: "أذكار المساء", value: "masaa" },
   ];
-  const boxVariants = {
-    hover: {
-      scale: 1.05,
-      backgroundColor: "var(--card-background)",
-      color: "var(--primary-color)",
-      transition: { duration: 0.3, type: "spring", stiffness: 300 },
-    },
-    click: { scale: 0.95, transition: { duration: 0.2 } },
-  };
+  
   return (
-    <ul className="w-full flex items-center justify-center gap-2.5 cursor-pointer py-1 text-sm text-[var(--text-color-medium)]">
-      {ButtonInfo.map((button, index) => (
-        <motion.li
-          key={index}
-          className="flex items-center px-4 py-3 rounded-md bg-[var(--card-background)] shadow-[var(--shadow)] border-2 border-[var(--accent-color)]"
-          onClick={button.Action}
-          variants={boxVariants}
-          whileHover={"hover"}
-          whileTap={"click"}
-        >
-          {button.label}
-        </motion.li>
-      ))}
-    </ul>
+    <div className="flex gap-4 border-b border-[var(--border-glass)] pb-4 w-full max-w-sm mx-auto justify-center">
+      {ButtonInfo.map((button) => {
+        const isActive = choice === button.value;
+        return (
+          <button
+            key={button.value}
+            onClick={() => setChoice(button.value)}
+            className={`px-6 py-2 text-lg font-tajawal transition-colors duration-300 relative ${
+              isActive ? "text-[var(--text-main)] font-bold" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
+            }`}
+          >
+            {button.label}
+            {isActive && (
+              <div className="absolute -bottom-4 left-0 w-full h-[2px] bg-[var(--accent)]"></div>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 };
 

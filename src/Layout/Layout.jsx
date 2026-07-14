@@ -1,13 +1,13 @@
 import { Outlet } from "react-router-dom";
 import Nav from "../Components/Nav.jsx";
-import Footer from "../Components/Footer.jsx";
+import DeveloperBadge from "../Components/DeveloperBadge.jsx";
 
 const Layout = () => {
   return (
     <>
       <Nav />
       <Outlet />
-      <Footer />
+      <DeveloperBadge />
     </>
   );
 };

@@ -1,25 +1,84 @@
-@import url("https://fonts.googleapis.com/css2?family=Readex+Pro:wght@160..700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap');
 @import "tailwindcss";
 
-:root {
-  --font-readex: "Readex Pro", sans-serif;
-  --shadow: 0px 3px 20px 0px rgb(0 0 0 / 10%);
-  --primary-color: #2c6e49;
-  --accent-color: #c89c3d;
-  --background-color: #f8f9fa;
-  --card-background: #ffffff;
-  --text-color-dark: #212529;
-  --text-color-medium: #495057;
-  --text-color-light: #ffffff;
-}
-
 @layer base {
+  :root {
+    --font-tajawal: "Alexandria", sans-serif; /* Replaced Tajawal with Alexandria for a more modern premium look */
+    --font-amiri: "Amiri", serif;
+    
+    /* Light Mode - Royal Cream & Teal */
+    --bg-main: #FAFAFA; /* Pure soft off-white */
+    --bg-card: #FFFFFF; 
+    --border-subtle: #E5E7EB;
+    
+    --text-main: #111827; 
+    --text-muted: #6B7280;
+    --text-inverse: #FFFFFF;
+    
+    --accent: #0F766E; /* Deep elegant teal */
+    --accent-hover: #115E59;
+    --accent-light: #CCFBF1;
+    
+    --shadow-float: 0 10px 40px -10px rgba(15, 118, 110, 0.08);
+  }
+
+  .dark {
+    /* Dark Mode - Midnight Navy & Gold */
+    --bg-main: #0A0F1C; /* Very deep navy/night sky */
+    --bg-card: #111827; /* Dark elegant card */
+    --border-subtle: #1F2937;
+    
+    --text-main: #F9FAFB; 
+    --text-muted: #9CA3AF;
+    --text-inverse: #0A0F1C;
+    
+    --accent: #FBBF24; /* Soft Gold/Amber */
+    --accent-hover: #F59E0B;
+    --accent-light: rgba(251, 191, 36, 0.1);
+    
+    --shadow-float: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
+  }
+
   * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
   }
+  
   body {
-    font-family: var(--font-readex);
+    font-family: var(--font-tajawal);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    transition: background-color 0.4s ease, color 0.4s ease;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-amiri {
+    font-family: var(--font-amiri);
+  }
+}
+
+@layer utilities {
+  .card-glass {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-float);
+    border-radius: 1.5rem; /* 24px */
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .card-glass:hover {
+    box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .dark .card-glass:hover {
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.6);
+  }
+  
+  .pill-glass {
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-subtle);
+    border-radius: 9999px;
   }
 }

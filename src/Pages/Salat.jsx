@@ -1,17 +1,24 @@
-import { useEffect, useState, useRef } from "react";
-import InputAdd from "../Components/InputAdd";
-import Card from "../Components/Card";
+import { useEffect, useState } from "react";
 
 const Salat = () => {
-  const inputRef = useRef(null);
   const [city, setCity] = useState("القاهره");
-  const [date, setDate] = useState([]);
-  const [filteredTimings, setFilteredTimings] = useState({});
-  const prayerNames = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
+  const [searchInput, setSearchInput] = useState("");
+  const [date, setDate] = useState({ hijri: "", readable: "" });
+  const [timings, setTimings] = useState({});
+  const [nextPrayer, setNextPrayer] = useState(null);
+
+  const prayerData = [
+    { id: "Fajr", name: "الفجر" },
+    { id: "Dhuhr", name: "الظهر" },
+    { id: "Asr", name: "العصر" },
+    { id: "Maghrib", name: "المغرب" },
+    { id: "Isha", name: "العشاء" },
+  ];
 
   const convertTo12Hour = (time24) => {
+    if (!time24) return "";
     const [hour, minute] = time24.split(":").map(Number);
-    const period = hour >= 12 ? "PM" : "AM";
+    const period = hour >= 12 ? "م" : "ص";
     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
     return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
   };
@@ -19,13 +26,38 @@ const Salat = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(
-          `https://api.aladhan.com/v1/timingsByAddress?address=${city}&method=5`
-        );
+        const res = await fetch(`https://api.aladhan.com/v1/timingsByAddress?address=${city}&method=5`);
         const data = await res.json();
+
         const { Fajr, Dhuhr, Asr, Maghrib, Isha } = data.data.timings;
-        setFilteredTimings({ Fajr, Dhuhr, Asr, Maghrib, Isha });
-        setDate([data.data.date.hijri.date, data.data.date.readable]);
+        setTimings({ Fajr, Dhuhr, Asr, Maghrib, Isha });
+        setDate({
+          hijri: data.data.date.hijri.date,
+          readable: data.data.date.readable
+        });
+
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const prayers = [
+          { id: "Fajr", time: Fajr },
+          { id: "Dhuhr", time: Dhuhr },
+          { id: "Asr", time: Asr },
+          { id: "Maghrib", time: Maghrib },
+          { id: "Isha", time: Isha }
+        ];
+
+        let next = prayers[0];
+        for (let p of prayers) {
+          if (!p.time) continue;
+          const [h, m] = p.time.split(":").map(Number);
+          const pMins = h * 60 + m;
+          if (pMins > currentMinutes) {
+            next = p;
+            break;
+          }
+        }
+        setNextPrayer(next.id);
+
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -33,25 +65,80 @@ const Salat = () => {
     fetchData();
   }, [city]);
 
-  return (
-    <article className="w-9/10 min-w-[310px] p-2.5 flex flex-col items-center gap-5 my-24">
-      <ul className="flex w-full max-w-2xl justify-around flex-wrap bg-[var(--card-background)] p-4 rounded-xl shadow-[var(--shadow)]">
-        <li className="font-bold text-[var(--primary-color)]">{date[0]}</li>
-        <li className="text-[var(--accent-color)] font-black text-2xl">
-          {city.toUpperCase()}
-        </li>
-        <li className="font-bold text-[var(--primary-color)]">{date[1]}</li>
-      </ul>
-      <InputAdd inputRef={inputRef} Add={setCity} Word={"ابحث"} />
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      setCity(searchInput);
+      setSearchInput("");
+    }
+  };
 
-      <ul className="p-2.5 flex flex-col gap-5 items-center grow w-9/10">
-        {Object.values(filteredTimings).map((e, index) => (
-          <Card key={index} content={prayerNames[index]}>
-            <span className="text-[var(--primary-color)] font-bold text-lg">{convertTo12Hour(e)}</span>
-          </Card>
-        ))}
-      </ul>
-    </article>
+  return (
+    <main className="min-h-screen pt-32 pb-24 bg-[var(--bg-main)]">
+      <div className="w-full max-w-5xl mx-auto px-4 flex flex-col">
+
+        <div className="mb-12 border-b border-[var(--border-subtle)] pb-8">
+          <h1 className="text-4xl md:text-5xl font-bold font-amiri text-[var(--text-main)] mb-4 border-r-4 border-[var(--accent)] pr-6">
+            مواقيت الصلاة
+          </h1>
+          <p className="text-[var(--text-muted)] font-tajawal text-lg font-medium pr-6">إن الصلاة كانت على المؤمنين كتاباً موقوتاً</p>
+        </div>
+
+        <div className="card-soft p-8 mb-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col items-center md:items-start text-center md:text-right">
+            <h2 className="text-3xl font-bold text-[var(--accent)] font-amiri mb-3">{city.toUpperCase()}</h2>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[var(--text-muted)] font-medium text-sm font-tajawal">
+              <span>{date.hijri}</span>
+              <span className="hidden sm:inline-block w-1 h-1 bg-[var(--text-muted)] rounded-full"></span>
+              <span dir="ltr">{date.readable}</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSearch} className="w-full md:w-auto flex">
+            <input
+              type="text"
+              placeholder="ابحث عن مدينة أخرى..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full md:w-64 px-4 py-3 bg-[var(--bg-main)] border border-[var(--border-subtle)] outline-none focus:border-[var(--accent)] transition-colors text-[var(--text-main)] font-tajawal rounded-r-xl"
+            />
+            <button type="submit" className="px-6 py-3 bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors font-tajawal rounded-l-xl">
+              بحث
+            </button>
+          </form>
+        </div>
+
+        <div className="w-full grid grid-cols-2 md:grid-cols-5 gap-4">
+          {prayerData.map((prayer) => {
+            const time = timings[prayer.id];
+            const isNext = nextPrayer === prayer.id;
+
+            return (
+              <div
+                key={prayer.id}
+                className={`relative flex flex-col items-center justify-center p-6 card-glass transition-all border ${isNext
+                    ? "bg-[var(--accent-light)] border-[var(--accent)]"
+                    : "border-[var(--border-subtle)]"
+                  }`}
+              >
+                {isNext && (
+                  <div className="absolute -top-3 bg-[var(--accent)] text-white px-3 py-1 rounded-full text-xs font-tajawal font-bold tracking-wide">
+                    القادمة
+                  </div>
+                )}
+
+                <h3 className={`text-xl font-amiri mb-3 ${isNext ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)]"}`}>
+                  {prayer.name}
+                </h3>
+                <div className={`text-2xl font-tajawal ${isNext ? "text-[var(--text-main)] font-bold" : "text-[var(--text-main)]"}`}>
+                  {time ? convertTo12Hour(time) : "--:--"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </main>
   );
 };
 

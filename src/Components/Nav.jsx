@@ -1,124 +1,149 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import SocialLinksPopup from "./SocialLinksPopup"; // 1. استيراد المكون الجديد
+import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../Context/AuthContext";
 
 const Nav = () => {
   const navLinks = [
-    { path: "", label: "الرئيسيه" },
-    { path: "salat", label: "مواقيت الصلاة" },
-    { path: "lessons", label: "الدروس" },
-    { path: "azkar", label: "الأذكار" },
-    { path: "duaa", label: "الدعاء" },
+    { path: "/", label: "الرئيسيه" },
+    { path: "/salat", label: "مواقيت الصلاة" },
+    { path: "/lessons", label: "الدروس" },
+    { path: "/azkar", label: "الأذكار" },
+    { path: "/habits", label: "العادات" },
   ];
-  // 2. إعادة تسمية الحالة لتكون أوضح وإضافة حالة جديدة للـ popup
+
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSocialPopupOpen, setIsSocialPopupOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { user, isAdmin, logout } = useAuth();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-  const toggleSocialPopup = () => setIsSocialPopupOpen(!isSocialPopupOpen);
 
   return (
-    <nav
-      className="nav h-20 z-50 w-full bg-[var(--primary-color)] border-b-gray-500 backdrop-blur-lg fixed top-0
- flex justify-between items-center p-4"
-    >
-      {/* Desktop Menu */}
-      <div className="hidden md:flex w-4/5 justify-evenly gap-7.5">
-        {navLinks.map((link, index) => (
+    <nav>
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-4xl bg-[var(--bg-card)]/80 backdrop-blur-xl border border-[var(--border-subtle)] rounded-full shadow-[var(--shadow-float)] transition-colors duration-400">
+        <div className="px-6 py-3 flex justify-between items-center">
+
+          {/* Brand */}
           <Link
-            key={index}
-            to={`/${link.path}`}
-            className="mx-2 text-[var(--text-color-light)] hover:text-[var(--accent-color)] transition-colors duration-300"
+            to="/"
+            className="text-xl font-bold font-amiri text-[var(--text-main)] hover:text-[var(--accent)] transition-colors"
           >
-            {link.label}
+            حسنات
           </Link>
-        ))}
-      </div>
-      {/* 3. تعديل زر "تابعني" لسطح المكتب */}
-      <div className="relative hidden md:block">
-        <button
-          onClick={toggleSocialPopup}
-          className="bg-[var(--accent-color)] text-[var(--text-color-dark)] px-4 py-2 rounded-md"
-        >
-          تابعني
-        </button>
-        <SocialLinksPopup
-          isOpen={isSocialPopupOpen}
-          onClose={() => setIsSocialPopupOpen(false)}
-          className="absolute top-full left-0 mt-2 w-48"
-        />
-      </div>
 
-      {/* Mobile Menu Button */}
-      <div className="md:hidden flex items-center w-full justify-between">
-        <span className="text-xl text-[var(--text-color-light)] font-bold">
-          حسنات
-        </span>
-        <button
-          onClick={toggleMobileMenu}
-          className="text-[var(--text-color-light)] focus:outline-none"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d={
-                isMobileMenuOpen
-                  ? "M6 18L18 6M6 6l12 12"
-                  : "M4 6h16M4 12h16m-7 6h7"
-              }
-            ></path>
-          </svg>
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden absolute top-20 left-0 w-full bg-[var(--primary-color)] shadow-lg"
-          >
-            <div className="flex flex-col items-center gap-4 p-4">
-              {navLinks.map((link, index) => (
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-6">
+            {navLinks.map((link, index) => {
+              const isActive = location.pathname === link.path ||
+                (link.path !== "/" && location.pathname.startsWith(link.path));
+              return (
                 <Link
                   key={index}
-                  to={`/${link.path}`}
-                  className="mx-2 text-[var(--text-color-light)] hover:text-[var(--accent-color)] transition-colors duration-300"
-                  onClick={() => setIsMobileMenuOpen(false)} // Close menu on link click
+                  to={link.path}
+                  className={`text-sm font-medium transition-colors duration-300 ${isActive ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                    }`}
                 >
                   {link.label}
                 </Link>
-              ))}
-              {/* 4. تعديل زر "تابعني" للجوال */}
-              <div className="relative w-full">
-                <button
-                  onClick={toggleSocialPopup}
-                  className="bg-[var(--accent-color)] text-[var(--text-color-dark)] px-4 py-2 rounded-md w-full mt-2"
-                >
-                  تابعني
+              );
+            })}
+          </div>
+
+          {/* Controls */}
+          <div className="flex gap-4 items-center">
+            {user ? (
+              <>
+                {isAdmin && (
+                  <Link to="/admin" className="hidden md:flex text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors" title="لوحة التحكم">
+                    <i className="fa-solid fa-gauge-high"></i>
+                  </Link>
+                )}
+                <Link to="/favorites" className="text-[var(--text-muted)] hover:text-red-500 transition-colors" title="المفضلة">
+                  <i className="fa-solid fa-heart"></i>
+                </Link>
+                <Link to="/profile" className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors" title="حسابي">
+                  <i className="fa-solid fa-user"></i>
+                </Link>
+                <button onClick={logout} className="hidden md:flex text-sm font-bold text-red-500 hover:text-red-600 transition-colors">
+                  خروج
                 </button>
-                <SocialLinksPopup
-                  isOpen={isSocialPopupOpen}
-                  onClose={() => setIsSocialPopupOpen(false)}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48"
-                />
-              </div>
-            </div>
-          </motion.div>
+              </>
+            ) : (
+              <Link to="/login" className="hidden md:flex text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors">
+                تسجيل الدخول
+              </Link>
+            )}
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--accent)] border border-[var(--border-subtle)] transition-colors"
+              title={theme === "light" ? "الوضع الليلي" : "الوضع النهاري"}
+            >
+              {theme === "light" ? (
+                <i className="fa-solid fa-moon text-xs"></i>
+              ) : (
+                <i className="fa-solid fa-sun text-xs"></i>
+              )}
+            </button>
+
+            {/* Mobile Toggle */}
+            <button onClick={toggleMobileMenu} className="md:hidden text-[var(--text-main)]">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"} />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 mt-4 w-full bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-subtle)] rounded-2xl p-4 flex flex-col gap-4 shadow-lg">
+            {navLinks.map((link, index) => {
+              const isActive = location.pathname === link.path ||
+                (link.path !== "/" && location.pathname.startsWith(link.path));
+              return (
+                <Link
+                  key={index}
+                  to={link.path}
+                  className={`text-center py-2 ${isActive ? "text-[var(--accent)] font-bold" : "text-[var(--text-main)]"}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+            
+            <hr className="border-[var(--border-subtle)]" />
+            
+            {isAdmin && (
+              <Link 
+                to="/admin" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-center py-2 text-[var(--accent)] font-bold"
+              >
+                لوحة التحكم
+              </Link>
+            )}
+
+            {user ? (
+              <button 
+                onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                className="w-full py-2 bg-red-500/10 text-red-500 font-bold rounded-lg"
+              >
+                تسجيل الخروج
+              </button>
+            ) : (
+              <Link 
+                to="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-center py-2 bg-[var(--accent)]/10 text-[var(--accent)] font-bold rounded-lg"
+              >
+                تسجيل الدخول
+              </Link>
+            )}
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </nav>
   );
 };
