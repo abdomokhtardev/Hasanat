@@ -1,20 +1,21 @@
-// import { createBrowserRouter } from "react-router-dom";
-import { createHashRouter } from "react-router-dom";
+import { lazy } from "react";
+import { createBrowserRouter } from "react-router-dom";
 import Layout from "../Layout/Layout.jsx";
-import Home from "../Pages/Home.jsx";
-import Lessons from "../Pages/Lessons.jsx";
-import Series from "../Pages/Series.jsx";
-import Azkar from "../Pages/Azkar.jsx";
-import Salat from "../Pages/Salat.jsx";
-import Habits from "../Pages/Habits.jsx";
-import Login from "../Pages/Login.jsx";
-import Register from "../Pages/Register.jsx";
-import AdminDashboard from "../Pages/AdminDashboard.jsx";
-import Profile from "../Pages/Profile.jsx";
-import Favorites from "../Pages/Favorites.jsx";
 import ProtectedRoute from "../Components/ProtectedRoute.jsx";
 
-const router = createHashRouter([
+const Home = lazy(() => import("../Pages/Home.jsx"));
+const Lessons = lazy(() => import("../Pages/Lessons.jsx"));
+const Series = lazy(() => import("../Pages/Series.jsx"));
+const Azkar = lazy(() => import("../Pages/Azkar.jsx"));
+const Salat = lazy(() => import("../Pages/Salat.jsx"));
+const Habits = lazy(() => import("../Pages/Habits.jsx"));
+const Login = lazy(() => import("../Pages/Login.jsx"));
+const Register = lazy(() => import("../Pages/Register.jsx"));
+const AdminDashboard = lazy(() => import("../Pages/AdminDashboard.jsx"));
+const Profile = lazy(() => import("../Pages/Profile.jsx"));
+const Favorites = lazy(() => import("../Pages/Favorites.jsx"));
+
+const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
@@ -50,7 +51,7 @@ const router = createHashRouter([
             <Favorites />
           </ProtectedRoute>
         ) 
-      },
+      }
     ],
   },
 ]);
