@@ -19,29 +19,33 @@ const DailyChallenge = () => {
   const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
-    // Check local storage for today's challenge
     const today = new Date().toLocaleDateString();
-    const savedDate = localStorage.getItem("hasanat_challenge_date");
-    const savedChallenge = localStorage.getItem("hasanat_challenge_text");
-    const savedStatus = localStorage.getItem("hasanat_challenge_status");
+    const savedChallengeData = JSON.parse(localStorage.getItem("hasanat_challenge")) || {};
 
-    if (savedDate === today && savedChallenge) {
-      setChallenge(savedChallenge);
-      setIsCompleted(savedStatus === "true");
+    if (savedChallengeData.date === today && savedChallengeData.text) {
+      setChallenge(savedChallengeData.text);
+      setIsCompleted(savedChallengeData.status === true);
     } else {
       // Pick a new random challenge
       const randomChallenge = CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
       setChallenge(randomChallenge);
       setIsCompleted(false);
-      localStorage.setItem("hasanat_challenge_date", today);
-      localStorage.setItem("hasanat_challenge_text", randomChallenge);
-      localStorage.setItem("hasanat_challenge_status", "false");
+      localStorage.setItem("hasanat_challenge", JSON.stringify({
+        date: today,
+        text: randomChallenge,
+        status: false
+      }));
     }
   }, []);
 
   const handleComplete = () => {
     setIsCompleted(true);
-    localStorage.setItem("hasanat_challenge_status", "true");
+    const today = new Date().toLocaleDateString();
+    localStorage.setItem("hasanat_challenge", JSON.stringify({
+      date: today,
+      text: challenge,
+      status: true
+    }));
   };
 
   return (

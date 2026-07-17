@@ -42,61 +42,76 @@ const Habits = () => {
   const [prayerTimings, setPrayerTimings] = useState(null);
 
   useEffect(() => {
+    let intervalId;
+
     async function fetchTimingsAndCheckReset() {
+      let fajrHour = 4;
+      let fajrMinute = 0;
+
       try {
-        const res = await fetch(`https://api.aladhan.com/v1/timingsByAddress?address=القاهره&method=5`);
+        const res = await fetch(`https://api.aladhan.com/v1/timingsByAddress?address=القاهرة&method=5`);
         const data = await res.json();
         const timings = data.data.timings;
         setPrayerTimings(timings);
         
-        let savedHabits = JSON.parse(localStorage.getItem("hasanat_habits")) || [];
-        
-        // If user is logged in, fetch from Firebase to merge/override
-        if (user) {
-          try {
-            const docSnap = await getDoc(doc(db, "users", user.uid));
-            if (docSnap.exists() && docSnap.data().habits) {
-              savedHabits = docSnap.data().habits;
-            }
-          } catch (err) {
-            console.error("Failed to fetch habits from Firebase", err);
-          }
-        }
+        [fajrHour, fajrMinute] = timings.Fajr.split(":").map(Number);
+      } catch (err) {
+        console.error("Failed to fetch timings, using fallback Fajr time", err);
+      }
 
-        // --- Fajr Reset Logic ---
+      let savedHabits = JSON.parse(localStorage.getItem("hasanat_habits")) || [];
+      
+      if (user) {
+        try {
+          const docSnap = await getDoc(doc(db, "users", user.uid));
+          if (docSnap.exists() && docSnap.data().habits) {
+            savedHabits = docSnap.data().habits;
+          }
+        } catch (err) {
+          console.error("Failed to fetch habits from Firebase", err);
+        }
+      }
+
+      // --- Fajr Reset Logic ---
+      const checkReset = () => {
         const lastReset = localStorage.getItem("hasanat_habits_last_reset");
+        const currentHabits = JSON.parse(localStorage.getItem("hasanat_habits")) || savedHabits;
         
-        // Parse Fajr time for today
-        const [fajrHour, fajrMinute] = timings.Fajr.split(":").map(Number);
         const now = new Date();
         const fajrDate = new Date();
         fajrDate.setHours(fajrHour, fajrMinute, 0, 0);
 
-        // Determine active cycle based on current time
         const activeDate = new Date(now);
         if (now < fajrDate) {
           activeDate.setDate(activeDate.getDate() - 1);
         }
-        const activeCycle = `${activeDate.toLocaleDateString()}-after-fajr`;
+        // Use YYYY-MM-DD to avoid locale issues
+        const activeCycle = `${activeDate.getFullYear()}-${activeDate.getMonth() + 1}-${activeDate.getDate()}-after-fajr`;
 
         if (lastReset !== activeCycle) {
-          const resetHabits = savedHabits.map(h => ({ ...h, completedMinutes: 0 }));
+          // Clear all habits completely
+          const resetHabits = [];
           setHabits(resetHabits);
           localStorage.setItem("hasanat_habits", JSON.stringify(resetHabits));
           localStorage.setItem("hasanat_habits_last_reset", activeCycle);
           if (user) {
-            setDoc(doc(db, "users", user.uid), { habits: resetHabits }, { merge: true });
+            setDoc(doc(db, "users", user.uid), { habits: resetHabits }, { merge: true }).catch(console.error);
           }
-        } else {
-          setHabits(savedHabits);
+        } else if (!intervalId) { // Only set state initially if no reset needed
+          setHabits(currentHabits);
         }
-      } catch (err) {
-        console.error("Failed to fetch timings", err);
-        setHabits(JSON.parse(localStorage.getItem("hasanat_habits")) || []);
-      }
+      };
+
+      checkReset();
+      // Check every minute if Fajr time has passed
+      intervalId = setInterval(checkReset, 60000);
     }
     
     fetchTimingsAndCheckReset();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -187,16 +202,18 @@ const Habits = () => {
   let collisionHabit = null;
   const newHabitInterval = getInterval(newHabit);
   
-  for (let h of habits) {
-    if (h.id === editingHabitId) continue;
-    if (h.category === newHabit.category) {
-      const hInt = getInterval(h);
-      const maxStart = Math.max(newHabitInterval.start, hInt.start);
-      const minEnd = Math.min(newHabitInterval.end, hInt.end);
-      // Strictly less than for overlap. If maxStart == minEnd they are just adjacent.
-      if (maxStart < minEnd) {
-        collisionHabit = h;
-        break;
+  if (newHabit.title.trim()) {
+    for (let h of habits) {
+      if (h.id === editingHabitId) continue;
+      if (h.category === newHabit.category) {
+        const hInt = getInterval(h);
+        const maxStart = Math.max(newHabitInterval.start, hInt.start);
+        const minEnd = Math.min(newHabitInterval.end, hInt.end);
+        // Strictly less than for overlap. If maxStart == minEnd they are just adjacent.
+        if (maxStart < minEnd) {
+          collisionHabit = h;
+          break;
+        }
       }
     }
   }
@@ -248,6 +265,17 @@ const Habits = () => {
     <main className="min-h-screen pt-32 pb-24 bg-[var(--bg-main)] px-4">
       <div className="max-w-4xl mx-auto flex flex-col gap-8">
         
+        {/* Notice Message */}
+        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-500 p-4 rounded-xl flex items-start gap-3 font-tajawal shadow-sm">
+          <i className="fa-solid fa-circle-info text-xl mt-0.5"></i>
+          <div>
+            <h4 className="font-bold text-lg mb-1">تنبيه هام حول العادات</h4>
+            <p className="text-sm font-medium leading-relaxed">
+              لتحفيزك على التجديد اليومي، يتم <strong>مسح جميع العادات بشكل كامل</strong> تلقائياً مع دخول وقت صلاة الفجر كل يوم لتبدأ صفحة جديدة مع الله.
+            </p>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="card-glass p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-6 text-center sm:text-right">
@@ -296,6 +324,7 @@ const Habits = () => {
                         type="button"
                         onClick={() => setNewHabit({...newHabit, icon})}
                         className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all ${newHabit.icon === icon ? 'bg-[var(--accent)] text-white shadow-md scale-110' : 'bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--accent)] border border-[var(--border-subtle)]'}`}
+                        aria-label={`اختيار أيقونة ${icon}`}
                       >
                         <i className={`fa-solid ${icon}`}></i>
                       </button>
@@ -313,6 +342,8 @@ const Habits = () => {
                       value={newHabit.title}
                       onChange={(e) => setNewHabit({...newHabit, title: e.target.value})}
                       required
+                      onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة اسم العادة')}
+                      onInput={(e) => e.target.setCustomValidity('')}
                     />
                   </div>
                   
@@ -351,6 +382,8 @@ const Habits = () => {
                       value={newHabit.offsetMinutes}
                       onChange={(e) => setNewHabit({...newHabit, offsetMinutes: parseInt(e.target.value) || 0})}
                       required
+                      onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة الدقائق بشكل صحيح')}
+                      onInput={(e) => e.target.setCustomValidity('')}
                     />
                   </div>
 
@@ -363,6 +396,8 @@ const Habits = () => {
                       value={newHabit.targetMinutes}
                       onChange={(e) => setNewHabit({...newHabit, targetMinutes: parseInt(e.target.value) || 0})}
                       required
+                      onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة الدقائق بشكل صحيح')}
+                      onInput={(e) => e.target.setCustomValidity('')}
                     />
                   </div>
                 </div>
@@ -448,10 +483,10 @@ const Habits = () => {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => handleEditClick(habit)} className="text-[var(--text-muted)] hover:text-blue-500 transition-colors px-2">
+                              <button onClick={() => handleEditClick(habit)} className="text-[var(--text-muted)] hover:text-blue-500 transition-colors px-2" aria-label="تعديل العادة">
                                 <i className="fa-solid fa-pen"></i>
                               </button>
-                              <button onClick={() => deleteHabit(habit.id)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors px-2">
+                              <button onClick={() => deleteHabit(habit.id)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors px-2" aria-label="حذف العادة">
                                 <i className="fa-solid fa-trash-can"></i>
                               </button>
                             </div>

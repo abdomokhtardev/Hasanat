@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 
 const Salat = () => {
-  const [city, setCity] = useState("القاهره");
+  const [city, setCity] = useState("القاهرة");
+  const [displayCity, setDisplayCity] = useState("القاهرة");
   const [searchInput, setSearchInput] = useState("");
   const [date, setDate] = useState({ hijri: "", readable: "" });
   const [timings, setTimings] = useState({});
   const [nextPrayer, setNextPrayer] = useState(null);
+  const [error, setError] = useState("");
 
   const prayerData = [
     { id: "Fajr", name: "الفجر" },
@@ -29,6 +31,13 @@ const Salat = () => {
         const res = await fetch(`https://api.aladhan.com/v1/timingsByAddress?address=${city}&method=5`);
         const data = await res.json();
 
+        if (data.code !== 200 || !data.data || !data.data.timings) {
+          setError("لم يتم العثور على المدينة، تأكد من الاسم");
+          return;
+        }
+
+        setError("");
+        setDisplayCity(city);
         const { Fajr, Dhuhr, Asr, Maghrib, Isha } = data.data.timings;
         setTimings({ Fajr, Dhuhr, Asr, Maghrib, Isha });
         setDate({
@@ -56,10 +65,11 @@ const Salat = () => {
             break;
           }
         }
-        setNextPrayer(next.id);
+        setNextPrayer(next?.id || "Fajr");
 
       } catch (err) {
         console.error("Error fetching data:", err);
+        setError("حدث خطأ أثناء الاتصال بالخادم");
       }
     }
     fetchData();
@@ -86,7 +96,7 @@ const Salat = () => {
 
         <div className="card-soft p-8 mb-12 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center md:items-start text-center md:text-right">
-            <h2 className="text-3xl font-bold text-[var(--accent)] font-amiri mb-3">{city.toUpperCase()}</h2>
+            <h2 className="text-3xl font-bold text-[var(--accent)] font-amiri mb-3">{displayCity.toUpperCase()}</h2>
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[var(--text-muted)] font-medium text-sm font-tajawal">
               <span>{date.hijri}</span>
               <span className="hidden sm:inline-block w-1 h-1 bg-[var(--text-muted)] rounded-full"></span>
@@ -108,35 +118,43 @@ const Salat = () => {
           </form>
         </div>
 
-        <div className="w-full grid grid-cols-2 md:grid-cols-5 gap-4">
-          {prayerData.map((prayer) => {
-            const time = timings[prayer.id];
-            const isNext = nextPrayer === prayer.id;
+        {error && (
+          <div className="w-full text-center p-6 mb-12 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-tajawal font-bold text-lg">
+            {error}
+          </div>
+        )}
 
-            return (
-              <div
-                key={prayer.id}
-                className={`relative flex flex-col items-center justify-center p-6 card-glass transition-all border ${isNext
+        {Object.keys(timings).length > 0 && (
+          <div className="w-full grid grid-cols-2 md:grid-cols-5 gap-4">
+            {prayerData.map((prayer) => {
+              const time = timings[prayer.id];
+              const isNext = nextPrayer === prayer.id;
+
+              return (
+                <div
+                  key={prayer.id}
+                  className={`relative flex flex-col items-center justify-center p-6 card-glass transition-all border ${isNext
                     ? "bg-[var(--accent-light)] border-[var(--accent)]"
                     : "border-[var(--border-subtle)]"
-                  }`}
-              >
-                {isNext && (
-                  <div className="absolute -top-3 bg-[var(--accent)] text-white px-3 py-1 rounded-full text-xs font-tajawal font-bold tracking-wide">
-                    القادمة
-                  </div>
-                )}
+                    }`}
+                >
+                  {isNext && (
+                    <div className="absolute -top-3 bg-[var(--accent)] text-white px-3 py-1 rounded-full text-xs font-tajawal font-bold tracking-wide">
+                      القادمة
+                    </div>
+                  )}
 
-                <h3 className={`text-xl font-amiri mb-3 ${isNext ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)]"}`}>
-                  {prayer.name}
-                </h3>
-                <div className={`text-2xl font-tajawal ${isNext ? "text-[var(--text-main)] font-bold" : "text-[var(--text-main)]"}`}>
-                  {time ? convertTo12Hour(time) : "--:--"}
+                  <h3 className={`text-xl font-amiri mb-3 ${isNext ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)]"}`}>
+                    {prayer.name}
+                  </h3>
+                  <div className={`text-2xl font-tajawal ${isNext ? "text-[var(--text-main)] font-bold" : "text-[var(--text-main)]"}`}>
+                    {time ? convertTo12Hour(time) : "--:--"}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </main>
   );

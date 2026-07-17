@@ -5,7 +5,7 @@ import { useAuth } from "../Context/AuthContext";
 
 const Nav = () => {
   const navLinks = [
-    { path: "/", label: "الرئيسيه" },
+    { path: "/", label: "الرئيسية" },
     { path: "/salat", label: "مواقيت الصلاة" },
     { path: "/lessons", label: "الدروس" },
     { path: "/azkar", label: "الأذكار" },
@@ -55,14 +55,14 @@ const Nav = () => {
             {user ? (
               <>
                 {isAdmin && (
-                  <Link to="/admin" className="hidden md:flex text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors" title="لوحة التحكم">
+                  <Link to="/admin" className="hidden md:flex text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors" title="لوحة التحكم" aria-label="لوحة التحكم">
                     <i className="fa-solid fa-gauge-high"></i>
                   </Link>
                 )}
-                <Link to="/favorites" className="text-[var(--text-muted)] hover:text-red-500 transition-colors" title="المفضلة">
+                <Link to="/favorites" className="text-[var(--text-muted)] hover:text-red-500 transition-colors" title="المفضلة" aria-label="المفضلة">
                   <i className="fa-solid fa-heart"></i>
                 </Link>
-                <Link to="/profile" className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors" title="حسابي">
+                <Link to="/profile" className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors" title="حسابي" aria-label="حسابي">
                   <i className="fa-solid fa-user"></i>
                 </Link>
                 <button onClick={logout} className="hidden md:flex text-sm font-bold text-red-500 hover:text-red-600 transition-colors">
@@ -78,6 +78,7 @@ const Nav = () => {
               onClick={toggleTheme}
               className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--accent)] border border-[var(--border-subtle)] transition-colors"
               title={theme === "light" ? "الوضع الليلي" : "الوضع النهاري"}
+              aria-label={theme === "light" ? "تفعيل الوضع الليلي" : "تفعيل الوضع النهاري"}
             >
               {theme === "light" ? (
                 <i className="fa-solid fa-moon text-xs"></i>
@@ -87,7 +88,7 @@ const Nav = () => {
             </button>
 
             {/* Mobile Toggle */}
-            <button onClick={toggleMobileMenu} className="md:hidden text-[var(--text-main)]">
+            <button onClick={toggleMobileMenu} className="md:hidden text-[var(--text-main)]" aria-label="فتح قائمة التنقل">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"} />
               </svg>

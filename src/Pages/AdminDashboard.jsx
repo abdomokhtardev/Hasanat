@@ -154,16 +154,16 @@ const AdminDashboard = () => {
               <form onSubmit={handleSaveSeries} className="space-y-4 font-tajawal">
                 <div>
                   <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">الاسم</label>
-                  <input required value={seriesForm.title} onChange={e => setSeriesForm({...seriesForm, title: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
+                  <input required onInvalid={(e) => e.target.setCustomValidity('يرجى ملء هذا الحقل')} onInput={(e) => e.target.setCustomValidity('')} value={seriesForm.title} onChange={e => setSeriesForm({...seriesForm, title: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">الشيخ</label>
-                  <input required value={seriesForm.teacher} onChange={e => setSeriesForm({...seriesForm, teacher: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
+                  <input required onInvalid={(e) => e.target.setCustomValidity('يرجى ملء هذا الحقل')} onInput={(e) => e.target.setCustomValidity('')} value={seriesForm.teacher} onChange={e => setSeriesForm({...seriesForm, teacher: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">التصنيف (الجديد يظهر تلقائياً)</label>
-                  <input required placeholder="مثال: ديني، تاريخ..." value={seriesForm.category} onChange={e => setSeriesForm({...seriesForm, category: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
+                  <input required onInvalid={(e) => e.target.setCustomValidity('يرجى ملء هذا الحقل')} onInput={(e) => e.target.setCustomValidity('')} placeholder="مثال: ديني، تاريخ..." value={seriesForm.category} onChange={e => setSeriesForm({...seriesForm, category: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
                 </div>
                 <button type="submit" className="w-full py-2 bg-[var(--accent)] text-white font-bold rounded-lg hover:bg-[var(--accent-hover)] transition">
                   {seriesForm.id ? "حفظ التعديل" : "إضافة السلسلة"}
@@ -184,7 +184,7 @@ const AdminDashboard = () => {
               <form onSubmit={handleSaveLesson} className="space-y-4 font-tajawal">
                 <div>
                   <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">اختر السلسلة</label>
-                  <select required value={lessonForm.seriesId} onChange={e => setLessonForm({...lessonForm, seriesId: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]">
+                  <select required onInvalid={(e) => e.target.setCustomValidity('يرجى اختيار سلسلة')} onInput={(e) => e.target.setCustomValidity('')} value={lessonForm.seriesId} onChange={e => setLessonForm({...lessonForm, seriesId: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]">
                     <option value="">-- اختر --</option>
                     {seriesList.map(s => (
                       <option key={s.id} value={s.id}>{s.title}</option>
@@ -193,11 +193,11 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">عنوان الحلقة</label>
-                  <input required value={lessonForm.title} onChange={e => setLessonForm({...lessonForm, title: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
+                  <input required onInvalid={(e) => e.target.setCustomValidity('يرجى ملء هذا الحقل')} onInput={(e) => e.target.setCustomValidity('')} value={lessonForm.title} onChange={e => setLessonForm({...lessonForm, title: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[var(--text-muted)] mb-1">الرابط</label>
-                  <input required value={lessonForm.link} onChange={e => setLessonForm({...lessonForm, link: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" dir="ltr" />
+                  <input required onInvalid={(e) => e.target.setCustomValidity('يرجى ملء هذا الحقل')} onInput={(e) => e.target.setCustomValidity('')} value={lessonForm.link} onChange={e => setLessonForm({...lessonForm, link: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)]" dir="ltr" />
                 </div>
                 <button type="submit" className="w-full py-2 bg-[var(--accent)] text-white font-bold rounded-lg hover:bg-[var(--accent-hover)] transition">
                   {lessonForm.id ? "حفظ التعديل" : "إضافة الحلقة"}
@@ -227,7 +227,10 @@ const AdminDashboard = () => {
                           {expandedSeries === series.id ? "إخفاء" : "عرض الحلقات"}
                         </button>
                         <button 
-                          onClick={() => setSeriesForm({ id: series.id, title: series.title, teacher: series.teacher, category: series.category || "ديني" })}
+                          onClick={() => {
+                            setSeriesForm({ id: series.id, title: series.title, teacher: series.teacher, category: series.category || "ديني" });
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
                           className="px-3 py-1 bg-blue-500/10 text-blue-500 text-xs font-bold rounded-lg hover:bg-blue-500/20"
                         >
                           تعديل
@@ -253,7 +256,10 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="flex gap-2">
                                   <button 
-                                    onClick={() => setLessonForm({ seriesId: series.id, id: ep.id, title: ep.title, link: ep.link })}
+                                    onClick={() => {
+                                      setLessonForm({ seriesId: series.id, id: ep.id, title: ep.title, link: ep.link });
+                                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
                                     className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg text-xs"
                                   >
                                     <i className="fa-solid fa-pen"></i>

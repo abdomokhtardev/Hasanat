@@ -39,6 +39,7 @@ const CountZkr = ({ choice, setCounter, index, isCompleted, currentCount, req })
             ? "bg-[var(--accent)] border-[var(--accent)] text-[var(--gold-main)] shadow-md"
             : "bg-[var(--bg-card)] text-[var(--text-main)] border-[var(--gold-main)]/50 hover:bg-[var(--accent)] hover:border-[var(--accent)] hover:text-[var(--gold-main)] shadow-sm"
           }`}
+        aria-label="تسجيل قراءة الذكر"
       >
         {isCompleted ? (
           <i className="fa-solid fa-check text-xl"></i>
@@ -55,6 +56,7 @@ const CountZkr = ({ choice, setCounter, index, isCompleted, currentCount, req })
         <button
           onClick={resetCount}
           className="text-[10px] text-[var(--text-muted)] hover:text-[var(--gold-main)] transition-colors mt-1 underline underline-offset-2"
+          aria-label="تصفير العداد"
         >
           تصفير
         </button>

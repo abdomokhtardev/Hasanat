@@ -5,18 +5,18 @@ import { motion } from "framer-motion";
 
 const Profile = () => {
   const { user } = useAuth();
-  
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [message, setMessage] = useState({ text: "", type: "" });
   const [loading, setLoading] = useState(false);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmNewPassword) {
       return setMessage({ text: "كلمات المرور الجديدة غير متطابقة!", type: "error" });
     }
@@ -35,12 +35,12 @@ const Profile = () => {
 
       // Update password
       await updatePassword(user, newPassword);
-      
+
       setMessage({ text: "تم تغيير كلمة المرور بنجاح! 🔒", type: "success" });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
-      
+
     } catch (err) {
       if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password") {
         setMessage({ text: "كلمة المرور الحالية غير صحيحة.", type: "error" });
@@ -56,7 +56,7 @@ const Profile = () => {
   return (
     <main className="min-h-screen pt-32 pb-20 bg-[var(--bg-main)]">
       <div className="max-w-3xl mx-auto px-4">
-        
+
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -90,18 +90,22 @@ const Profile = () => {
             <div className="relative">
               <label className="block text-sm font-bold text-[var(--text-main)] mb-2">كلمة المرور الحالية</label>
               <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  required 
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة كلمة المرور الحالية')}
+                  onInput={(e) => e.target.setCustomValidity('')}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-12"
                   dir="ltr"
+                  autocomplete="current-password"
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-4 flex items-center text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+                  aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
                 >
                   <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                 </button>
@@ -110,30 +114,36 @@ const Profile = () => {
 
             <div className="relative">
               <label className="block text-sm font-bold text-[var(--text-main)] mb-2">كلمة المرور الجديدة</label>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                required 
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة كلمة المرور الجديدة')}
+                onInput={(e) => e.target.setCustomValidity('')}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-12"
                 dir="ltr"
+                autocomplete="new-password"
               />
             </div>
 
             <div className="relative">
               <label className="block text-sm font-bold text-[var(--text-main)] mb-2">تأكيد كلمة المرور الجديدة</label>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                required 
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                onInvalid={(e) => e.target.setCustomValidity('يرجى تأكيد كلمة المرور')}
+                onInput={(e) => e.target.setCustomValidity('')}
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-12"
                 dir="ltr"
+                autoComplete="new-password"
               />
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className={`w-full py-3 mt-4 text-white font-bold rounded-xl transition-all ${loading ? 'bg-[var(--accent)]/50 cursor-not-allowed' : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] shadow-md'}`}
             >

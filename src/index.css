@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
   :root {
-    --font-tajawal: "Alexandria", sans-serif; /* Replaced Tajawal with Alexandria for a more modern premium look */
+    --font-tajawal: "Cairo", sans-serif; /* Replaced with Cairo for a premium and flexible look */
     --font-amiri: "Amiri", serif;
     
     /* Light Mode - Royal Cream & Teal */
@@ -19,7 +19,7 @@
     --accent-hover: #115E59;
     --accent-light: #CCFBF1;
     
-    --shadow-float: 0 10px 40px -10px rgba(15, 118, 110, 0.08);
+    --shadow-float: 0 10px 40px -10px rgba(15, 118, 110, 0.06);
   }
 
   .dark {
@@ -32,11 +32,11 @@
     --text-muted: #9CA3AF;
     --text-inverse: #0A0F1C;
     
-    --accent: #FBBF24; /* Soft Gold/Amber */
-    --accent-hover: #F59E0B;
-    --accent-light: rgba(251, 191, 36, 0.1);
+    --accent: #D97706; /* Darker Amber/Gold to contrast well with white text */
+    --accent-hover: #B45309;
+    --accent-light: rgba(217, 119, 6, 0.1);
     
-    --shadow-float: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
+    --shadow-float: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
   }
 
   * {
@@ -63,13 +63,13 @@
     background-color: var(--bg-card);
     border: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-float);
-    border-radius: 1.5rem; /* 24px */
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 2rem; /* 32px (Softer corners for a less sharp look) */
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
   
   .card-glass:hover {
-    box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.12);
-    transform: translateY(-4px);
+    box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.1);
+    transform: translateY(-4px) scale(1.01); /* Added slight scale for more flexibility/life */
   }
 
   .dark .card-glass:hover {

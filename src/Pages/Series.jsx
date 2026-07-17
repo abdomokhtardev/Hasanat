@@ -24,7 +24,7 @@ const Series = () => {
         setCurrentEpisode(foundSeries.episodes[0]);
       }
     }
-    
+
     const savedProgress = JSON.parse(localStorage.getItem("hasanat_progress")) || {};
     if (savedProgress[seriesId]) {
       setWatchedEpisodes(savedProgress[seriesId]);
@@ -39,7 +39,7 @@ const Series = () => {
       updatedWatched.push(epId);
     }
     setWatchedEpisodes(updatedWatched);
-    
+
     const savedProgress = JSON.parse(localStorage.getItem("hasanat_progress")) || {};
     savedProgress[seriesId] = updatedWatched;
     localStorage.setItem("hasanat_progress", JSON.stringify(savedProgress));
@@ -58,7 +58,7 @@ const Series = () => {
   return (
     <main className="pt-28 pb-24 px-4 bg-[var(--bg-main)] min-h-screen">
       <div className="w-full max-w-4xl mx-auto flex flex-col gap-10">
-        
+
         {/* Apple-style Typographic Header (No Image) */}
         <div className="card-glass p-8 md:p-12 flex flex-col items-center text-center">
           <div className="w-20 h-20 rounded-[1.5rem] bg-[var(--accent-light)] flex items-center justify-center text-[var(--accent)] mb-8 shadow-sm">
@@ -72,14 +72,14 @@ const Series = () => {
           </h1>
           <div className="flex items-center justify-center gap-3 text-[var(--text-muted)] font-tajawal text-xl font-medium">
             <i className="fa-solid fa-microphone-lines text-[var(--accent)]"></i>
-            <span>الشيخ {currentSeries.teacher}</span>
+            <span> {currentSeries.teacher}</span>
           </div>
         </div>
 
         {/* Video Player */}
         <AnimatePresence mode="wait">
           {currentEpisode && (
-            <motion.div 
+            <motion.div
               key={currentEpisode.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -102,19 +102,18 @@ const Series = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center gap-6">
                 <h2 className="text-2xl font-bold text-[var(--text-main)] font-amiri text-center sm:text-right">
                   {currentEpisode.title}
                 </h2>
-                
+
                 <button
                   onClick={() => toggleWatched(currentEpisode.id)}
-                  className={`px-6 py-3 rounded-full font-tajawal font-bold text-sm transition-all flex items-center gap-2 ${
-                    watchedEpisodes.includes(currentEpisode.id)
+                  className={`px-6 py-3 rounded-full font-tajawal font-bold text-sm transition-all flex items-center gap-2 ${watchedEpisodes.includes(currentEpisode.id)
                       ? "bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/30"
                       : "bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                  }`}
+                    }`}
                 >
                   {watchedEpisodes.includes(currentEpisode.id) ? (
                     <>
@@ -140,7 +139,7 @@ const Series = () => {
                 إنجاز: {progressPercentage}%
               </span>
               <div className="w-24 h-2 bg-[var(--border-subtle)] rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-[var(--accent)]"
                   style={{ width: `${progressPercentage}%` }}
                 ></div>
@@ -148,48 +147,52 @@ const Series = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {currentSeries.episodes.map((item, index) => {
               const isWatched = watchedEpisodes.includes(item.id);
               const isCurrent = currentEpisode?.id === item.id;
-              
+
               return (
-                <button
-                  key={item.id}
-                  onClick={() => setCurrentEpisode(item)}
-                  className={`w-full text-right px-4 py-4 rounded-xl flex items-center justify-between transition-all ${
-                    isCurrent
-                      ? "bg-[var(--accent-light)] text-[var(--accent)]"
-                      : "hover:bg-[var(--bg-card)] hover:shadow-sm text-[var(--text-main)]"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <span className={`text-sm w-6 text-center font-tajawal font-bold ${isCurrent ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}`}>
-                      {index + 1}
-                    </span>
-                    <span className={`text-base font-tajawal font-medium line-clamp-1 ${isCurrent ? "font-bold" : ""}`}>
-                      {item.title}
-                    </span>
-                  </div>
-                  
-                  <div className="shrink-0 flex items-center gap-4">
-                    {isCurrent && (
-                      <div className="flex items-center gap-1">
-                        <span className="w-1 h-3 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-1 h-4 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-1 h-2 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                      </div>
-                    )}
-                    {isWatched && !isCurrent && (
-                      <i className="fa-solid fa-check text-[var(--accent)] opacity-80 text-sm"></i>
-                    )}
-                  </div>
-                </button>
+                <div key={item.id} className="w-full">
+                  <button
+                    onClick={() => setCurrentEpisode(item)}
+                    className={`w-full text-right px-4 py-4 rounded-xl flex items-center justify-between transition-all ${isCurrent
+                        ? "bg-[var(--accent-light)] text-[var(--accent)]"
+                        : "hover:bg-[var(--bg-card)] hover:shadow-sm text-[var(--text-main)]"
+                      }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className={`text-sm w-6 text-center font-tajawal font-bold ${isCurrent ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}`}>
+                        {index + 1}
+                      </span>
+                      <span className={`text-base font-tajawal font-medium line-clamp-1 ${isCurrent ? "font-bold" : ""}`}>
+                        {item.title}
+                      </span>
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-4">
+                      {isCurrent && (
+                        <div className="flex items-center gap-1">
+                          <span className="w-1 h-3 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-1 h-4 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-1 h-2 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                      )}
+                      {isWatched && !isCurrent && (
+                        <i className="fa-solid fa-check text-[var(--accent)] opacity-80 text-sm"></i>
+                      )}
+                    </div>
+                  </button>
+                  {/* Simple line between episodes */}
+                  {index < currentSeries.episodes.length - 1 && (
+                    <div className="w-[calc(100%-2rem)] mx-auto h-px bg-[var(--border-subtle)] opacity-60 my-1"></div>
+                  )}
+                </div>
               );
             })}
           </div>
         </div>
-        
+
       </div>
     </main>
   );

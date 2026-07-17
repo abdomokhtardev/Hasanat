@@ -31,21 +31,56 @@ const Azkar = () => {
   }
 
   useEffect(() => {
-    function runDailyTask() {
-      const now = new Date();
-      if (now.getHours() === 12 && now.getMinutes() === 0) {
-        resetZkrCount();
-      }
-    }
-    const interval = setInterval(runDailyTask, 30000);
-    return () => clearInterval(interval);
-  }, [azkar]);
+    let intervalId;
 
-  useEffect(() => {
-    if (initValCount.length === 0 && azkar && azkar.length >= 2) {
-      resetZkrCount();
+    const fetchFajrAndCheckReset = async () => {
+      let fajrHour = 4;
+      let fajrMinute = 0;
+
+      try {
+        const res = await fetch(`https://api.aladhan.com/v1/timingsByAddress?address=القاهرة&method=5`);
+        const data = await res.json();
+        [fajrHour, fajrMinute] = data.data.timings.Fajr.split(":").map(Number);
+      } catch (err) {
+        console.error("Failed to fetch Fajr time, using fallback", err);
+      }
+
+      const checkReset = () => {
+        const lastReset = localStorage.getItem("hasanat_azkar_last_reset");
+        const now = new Date();
+        const fajrDate = new Date();
+        fajrDate.setHours(fajrHour, fajrMinute, 0, 0);
+        
+        const activeDate = new Date(now);
+        if (now < fajrDate) {
+          activeDate.setDate(activeDate.getDate() - 1);
+        }
+        
+        const activeCycle = `${activeDate.getFullYear()}-${activeDate.getMonth() + 1}-${activeDate.getDate()}`;
+        
+        if (lastReset !== activeCycle) {
+          resetZkrCount();
+          localStorage.setItem("hasanat_azkar_last_reset", activeCycle);
+        } else if (initValCount.length === 0 && azkar && azkar.length >= 2) {
+          resetZkrCount();
+        }
+      };
+
+      if (azkar && azkar.length >= 2) {
+        checkReset();
+        // Check every minute if Fajr time has come
+        intervalId = setInterval(checkReset, 60000);
+      }
+    };
+
+    if (azkar && azkar.length >= 2) {
+      fetchFajrAndCheckReset();
     }
-  }, [azkar, initValCount]);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [azkar, initValCount.length]);
 
   useEffect(() => {
     localStorage.setItem("countZkr", JSON.stringify(counter));

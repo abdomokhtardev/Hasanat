@@ -64,6 +64,8 @@ const Login = () => {
             <input 
               type="email" 
               required 
+              onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة البريد الإلكتروني')}
+              onInput={(e) => e.target.setCustomValidity('')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent)] transition-colors"
@@ -76,6 +78,8 @@ const Login = () => {
               <input 
                 type={showPassword ? "text" : "password"} 
                 required 
+                onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة كلمة المرور')}
+                onInput={(e) => e.target.setCustomValidity('')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-12"
