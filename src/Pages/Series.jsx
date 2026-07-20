@@ -53,7 +53,19 @@ const Series = () => {
     );
   }
 
-  const progressPercentage = Math.round((watchedEpisodes.length / currentSeries.episodes.length) * 100);
+  const progressPercentage = Math.round((watchedEpisodes.length / currentSeries.episodes.length) * 100) || 0;
+
+  const currentEpisodeIndex = currentSeries.episodes.findIndex(ep => ep.id === currentEpisode?.id);
+  const hasNext = currentEpisodeIndex !== -1 && currentEpisodeIndex < currentSeries.episodes.length - 1;
+  const hasPrev = currentEpisodeIndex > 0;
+
+  const goToNext = () => {
+    if (hasNext) setCurrentEpisode(currentSeries.episodes[currentEpisodeIndex + 1]);
+  };
+
+  const goToPrev = () => {
+    if (hasPrev) setCurrentEpisode(currentSeries.episodes[currentEpisodeIndex - 1]);
+  };
 
   return (
     <main className="pt-28 pb-24 px-4 bg-[var(--bg-main)] min-h-screen">
@@ -65,7 +77,7 @@ const Series = () => {
             <i className="fa-solid fa-book-open text-3xl"></i>
           </div>
           <span className="pill-glass px-5 py-1.5 inline-block text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-4">
-            سلسلة علمية
+            {currentSeries.type === 'single' ? 'حلقة منفردة' : 'سلسلة علمية'}
           </span>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-amiri text-[var(--text-main)] mb-6 leading-tight max-w-3xl">
             {currentSeries.title}
@@ -130,8 +142,37 @@ const Series = () => {
           )}
         </AnimatePresence>
 
+        {currentSeries.type !== 'single' && currentSeries.episodes.length > 1 && (
+          <div className="flex justify-between items-center gap-4 mt-[-1rem]">
+            <button
+              onClick={goToNext}
+              disabled={!hasNext}
+              className={`flex-1 py-3 px-4 rounded-xl font-bold font-tajawal flex items-center justify-center gap-2 transition-all ${
+                hasNext 
+                ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] shadow-md" 
+                : "bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] opacity-50 cursor-not-allowed"
+              }`}
+            >
+              <i className="fa-solid fa-forward"></i> الحلقة التالية
+            </button>
+            <button
+              onClick={goToPrev}
+              disabled={!hasPrev}
+              className={`flex-1 py-3 px-4 rounded-xl font-bold font-tajawal flex items-center justify-center gap-2 transition-all ${
+                hasPrev 
+                ? "bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]" 
+                : "bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] opacity-50 cursor-not-allowed"
+              }`}
+            >
+              الحلقة السابقة <i className="fa-solid fa-backward"></i>
+            </button>
+          </div>
+        )}
+
+
         {/* Apple Style Playlist */}
-        <div className="w-full card-glass p-6 sm:p-8">
+        {currentSeries.type !== 'single' && (
+          <div className="w-full card-glass p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
             <h3 className="text-2xl font-bold text-[var(--text-main)] font-amiri">الحلقات</h3>
             <div className="flex items-center gap-4">
@@ -192,6 +233,7 @@ const Series = () => {
             })}
           </div>
         </div>
+        )}
 
       </div>
     </main>

@@ -2,18 +2,23 @@ import { useData } from "../hooks/UseData.js";
 import LessonCard from "../Components/LessonCard.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import EmptyState from "../Components/EmptyState.jsx";
+import { LessonCardSkeleton } from "../Components/Skeleton.jsx";
 
 const Lessons = () => {
   const { lessons, loading, Spinner } = useData();
   const [selectedCategory, setSelectedCategory] = useState("الكل");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Dynamically extract unique categories from lessons
   const dynamicCategories = ["الكل", ...new Set(lessons.map(lesson => lesson.category || "أخرى"))];
 
-  // Filter lessons based on category
-  const filteredLessons = lessons.filter(lesson => 
-    selectedCategory === "الكل" ? true : lesson.category === selectedCategory
-  );
+  // Filter lessons based on category and search query
+  const filteredLessons = lessons.filter(lesson => {
+    const matchesCategory = selectedCategory === "الكل" ? true : lesson.category === selectedCategory;
+    const matchesSearch = lesson.title?.includes(searchQuery) || lesson.teacher?.includes(searchQuery) || false;
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <main className="min-h-screen pt-32 pb-20 bg-[var(--bg-main)]">
@@ -22,14 +27,25 @@ const Lessons = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 border-b border-[var(--gold-main)]/20 pb-8 text-center"
+          className="mb-8 border-b border-[var(--border-subtle)] pb-8 text-center"
         >
           <h1 className="text-4xl md:text-5xl text-[var(--text-main)] font-bold font-amiri mb-4">
             الدروس والسلاسل العلمية
           </h1>
-          <p className="text-[var(--text-muted)] text-lg font-tajawal font-medium">
+          <p className="text-[var(--text-muted)] text-lg font-tajawal font-medium mb-8">
             مكتبة مرئية وصوتية للدروس في مختلف العلوم والمجالات
           </p>
+
+          <div className="max-w-2xl mx-auto relative">
+            <i className="fa-solid fa-search absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"></i>
+            <input 
+              type="text" 
+              placeholder="ابحث عن سلسلة أو شيخ..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pr-12 pl-4 py-3 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:border-[var(--accent)] outline-none transition-colors shadow-sm font-tajawal"
+            />
+          </div>
         </motion.div>
 
         {/* Category Tabs */}
@@ -49,12 +65,17 @@ const Lessons = () => {
           ))}
         </div>
 
-        {loading ? (
-          <div className="flex justify-center items-center min-h-[40vh]">
-            {Spinner()}
-          </div>
-        ) : (
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+          {loading ? (
+            <>
+              <LessonCardSkeleton />
+              <LessonCardSkeleton />
+              <LessonCardSkeleton />
+              <LessonCardSkeleton />
+              <LessonCardSkeleton />
+              <LessonCardSkeleton />
+            </>
+          ) : (
             <AnimatePresence>
               {filteredLessons.length > 0 ? (
                 filteredLessons.map((lesson) => (
@@ -70,13 +91,17 @@ const Lessons = () => {
                   </motion.div>
                 ))
               ) : (
-                <div className="col-span-full py-12 text-center text-[var(--text-muted)] font-tajawal font-bold text-lg">
-                  لا توجد سلاسل في هذا التصنيف حتى الآن.
+                <div className="col-span-full w-full">
+                  <EmptyState 
+                    icon="fa-magnifying-glass"
+                    title="لم يتم العثور على نتائج"
+                    description="لا توجد دروس تطابق بحثك أو تصنيفك الحالي. حاول البحث بكلمات مختلفة أو تغيير التصنيف."
+                  />
                 </div>
               )}
             </AnimatePresence>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
       </div>
     </main>
   );

@@ -33,3 +33,47 @@
    npm run dev
    ```
 5. افتح الرابط الذي سيظهر لك في المتصفح `http://localhost:5173`.
+
+## أدوات للمشرفين (Admin Tools) 🛠️
+إذا كنت ترغب في استخراج قائمة تشغيل من يوتيوب لرفعها دفعة واحدة (Bulk Upload) في لوحة التحكم، يمكنك فتح قائمة التشغيل على يوتيوب، وفتح (Console) في المتصفح، ثم لصق الكود التالي:
+
+```javascript
+let container = document.querySelector('div.playlist-items.style-scope.ytd-playlist-panel-renderer');
+
+if (!container) {
+    console.log("الكونتينر مش ظاهر، تأكد إن قائمة الحلقات الجانبية مفتوحة.");
+} else {
+    let items = container.querySelectorAll('ytd-playlist-panel-video-renderer');
+    let videos = [];
+
+    items.forEach((item, index) => {
+        let linkElement = item.querySelector('a#video-title') || item.querySelector('a');
+        let titleElement = item.querySelector('#video-title');
+        
+        let title = titleElement ? titleElement.innerText.trim() : (linkElement ? linkElement.innerText.trim() : '');
+        
+        let url = '';
+        if (linkElement) {
+            url = linkElement.href || linkElement.getAttribute('href') || '';
+        }
+        
+        if (url) {
+            if (url.startsWith('/')) {
+                url = 'https://www.youtube.com' + url;
+            }
+            url = url.split('&')[0]; 
+        }
+        
+        if (title.length > 0) {
+            videos.push({
+                title: title,
+                url: url
+            });
+        }
+    });
+
+    console.table(videos);
+    console.log(JSON.stringify(videos, null, 2));
+}
+```
+بعدها يمكنك نسخ مصفوفة JSON الناتجة ولصقها في حقل "إضافة مجموعة روابط" في لوحة التحكم.

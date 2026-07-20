@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../Context/AuthContext";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import EmptyState from "../Components/EmptyState.jsx";
+import HabitForm from "../Components/Habits/HabitForm.jsx";
+import HabitList from "../Components/Habits/HabitList.jsx";
 
 const CATEGORIES = [
   { id: "Fajr", name: "صلاة الفجر" },
@@ -306,248 +309,50 @@ const Habits = () => {
         {/* Add Form */}
         <AnimatePresence>
           {showAddForm && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-            >
-              <form onSubmit={handleAddHabit} className="card-glass p-6 sm:p-8 flex flex-col gap-6">
-                
-                {/* Icon Selection */}
-                <div className="flex flex-col gap-3">
-                  <label className="text-sm font-bold font-tajawal text-[var(--text-main)]">اختر أيقونة معبرة</label>
-                  <div className="flex flex-wrap gap-3">
-                    {ICONS.map(icon => (
-                      <button 
-                        key={icon}
-                        type="button"
-                        onClick={() => setNewHabit({...newHabit, icon})}
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all ${newHabit.icon === icon ? 'bg-[var(--accent)] text-white shadow-md scale-110' : 'bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--accent)] border border-[var(--border-subtle)]'}`}
-                        aria-label={`اختيار أيقونة ${icon}`}
-                      >
-                        <i className={`fa-solid ${icon}`}></i>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex flex-col gap-2 md:col-span-2">
-                    <label className="text-sm font-bold font-tajawal text-[var(--text-main)]">اسم العادة</label>
-                    <input 
-                      type="text" 
-                      placeholder="مثال: قراءة ورد قرآني، أذكار، شرب ماء، مشي..."
-                      className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] focus:border-[var(--accent)] outline-none text-[var(--text-main)] font-tajawal transition-colors"
-                      value={newHabit.title}
-                      onChange={(e) => setNewHabit({...newHabit, title: e.target.value})}
-                      required
-                      onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة اسم العادة')}
-                      onInput={(e) => e.target.setCustomValidity('')}
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold font-tajawal text-[var(--text-main)]">ارتباط العادة بالصلاة</label>
-                    <select 
-                      className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] focus:border-[var(--accent)] outline-none text-[var(--text-main)] font-tajawal transition-colors cursor-pointer"
-                      value={newHabit.category}
-                      onChange={(e) => setNewHabit({...newHabit, category: e.target.value})}
-                    >
-                      {CATEGORIES.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name} {prayerTimings && `(${formatTime(prayerTimings[cat.id])})`}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold font-tajawal text-[var(--text-main)]">توقيت العادة بالنسبة للصلاة</label>
-                    <select 
-                      className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] focus:border-[var(--accent)] outline-none text-[var(--text-main)] font-tajawal transition-colors cursor-pointer"
-                      value={newHabit.timing}
-                      onChange={(e) => setNewHabit({...newHabit, timing: e.target.value})}
-                    >
-                      {TIMINGS.map(time => (
-                        <option key={time.id} value={time.id}>{time.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold font-tajawal text-[var(--text-main)]">وقت التنفيذ (قبل/بعد بـ كم دقيقة؟)</label>
-                    <input 
-                      type="number" 
-                      min="1"
-                      className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] focus:border-[var(--accent)] outline-none text-[var(--text-main)] font-tajawal transition-colors"
-                      value={newHabit.offsetMinutes}
-                      onChange={(e) => setNewHabit({...newHabit, offsetMinutes: parseInt(e.target.value) || 0})}
-                      required
-                      onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة الدقائق بشكل صحيح')}
-                      onInput={(e) => e.target.setCustomValidity('')}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold font-tajawal text-[var(--text-main)]">مدة العادة نفسها المستهدفة (بالدقائق)</label>
-                    <input 
-                      type="number" 
-                      min="1"
-                      className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] focus:border-[var(--accent)] outline-none text-[var(--text-main)] font-tajawal transition-colors"
-                      value={newHabit.targetMinutes}
-                      onChange={(e) => setNewHabit({...newHabit, targetMinutes: parseInt(e.target.value) || 0})}
-                      required
-                      onInvalid={(e) => e.target.setCustomValidity('يرجى كتابة الدقائق بشكل صحيح')}
-                      onInput={(e) => e.target.setCustomValidity('')}
-                    />
-                  </div>
-                </div>
-
-                {/* Status Indicator */}
-                <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-tajawal text-sm font-bold transition-colors ${timeStatusColor}`}>
-                  <div className="flex items-center gap-3">
-                    <i className={`fa-solid ${timeStatusIcon} text-lg`}></i>
-                    <p className="leading-relaxed">{timeStatusText}</p>
-                  </div>
-                  {autoFixAction && (
-                    <button 
-                      type="button"
-                      onClick={autoFixAction}
-                      className="px-4 py-2 rounded-lg bg-[var(--bg-card)] border border-current hover:bg-black/5 dark:hover:bg-white/5 transition-colors whitespace-nowrap shrink-0"
-                    >
-                      <i className="fa-solid fa-wand-magic-sparkles ml-2"></i>
-                      {autoFixText}
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex justify-end pt-4 border-t border-[var(--border-subtle)]">
-                  <button 
-                    type="submit" 
-                    disabled={timeStatusType === "collision"}
-                    className={`px-8 py-3 rounded-xl text-white font-bold font-tajawal transition-colors shadow-sm ${timeStatusType === "collision" ? "bg-gray-400 cursor-not-allowed opacity-70" : "bg-[var(--accent)] hover:bg-[var(--accent-hover)]"}`}
-                  >
-                    {editingHabitId ? "حفظ التعديل" : "حفظ العادة"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+            <HabitForm 
+              handleAddHabit={handleAddHabit}
+              newHabit={newHabit}
+              setNewHabit={setNewHabit}
+              editingHabitId={editingHabitId}
+              ICONS={ICONS}
+              CATEGORIES={CATEGORIES}
+              TIMINGS={TIMINGS}
+              prayerTimings={prayerTimings}
+              formatTime={formatTime}
+              timeStatusColor={timeStatusColor}
+              timeStatusIcon={timeStatusIcon}
+              timeStatusText={timeStatusText}
+              timeStatusType={timeStatusType}
+              autoFixAction={autoFixAction}
+              autoFixText={autoFixText}
+            />
           )}
         </AnimatePresence>
 
         {/* Habits List */}
         {habits.length === 0 && !showAddForm ? (
-          <div className="card-glass p-12 flex flex-col items-center justify-center text-center">
-            <i className="fa-solid fa-clipboard-list text-6xl text-[var(--border-subtle)] mb-4"></i>
-            <h3 className="text-2xl font-bold font-amiri text-[var(--text-main)] mb-2">لا توجد عادات مسجلة</h3>
-            <p className="text-[var(--text-muted)] font-tajawal">ابدأ بإضافة أول عادة يومية لك لتحافظ على استمراريتك.</p>
+          <div className="w-full">
+            <EmptyState 
+              icon="fa-clipboard-list"
+              title="لا توجد عادات مسجلة"
+              description="ابدأ بإضافة أول عادة يومية لك لتحافظ على استمراريتك."
+              buttonText="إضافة عادة جديدة"
+              onButtonClick={() => setShowAddForm(true)}
+            />
           </div>
         ) : (
-          <div className="flex flex-col gap-8">
-            {groupedHabits.map(group => (
-              <div key={group.id} className="flex flex-col gap-4">
-                <div className="flex items-center gap-3 border-b border-[var(--border-subtle)] pb-2">
-                  <div className="w-8 h-8 rounded-full bg-[var(--accent-light)] flex items-center justify-center text-[var(--accent)] text-sm">
-                    <i className="fa-solid fa-mosque"></i>
-                  </div>
-                  <h2 className="text-xl font-bold font-tajawal text-[var(--text-main)]">{group.name} {prayerTimings && `- ${formatTime(prayerTimings[group.id])}`}</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <AnimatePresence>
-                    {group.items.map(habit => {
-                      const isCompleted = habit.completedMinutes >= habit.targetMinutes;
-                      const progressPercentage = Math.round((habit.completedMinutes / habit.targetMinutes) * 100);
-                      const timingName = TIMINGS.find(t => t.id === habit.timing)?.name;
-                      
-                      return (
-                        <motion.div
-                          key={habit.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className={`card-glass p-5 flex flex-col gap-4 transition-colors ${isCompleted ? 'border-[var(--accent)] bg-[var(--accent-light)]/10' : ''}`}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className="flex gap-4">
-                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${isCompleted ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-main)] text-[var(--accent)] border border-[var(--border-subtle)]'}`}>
-                                <i className={`fa-solid ${habit.icon || 'fa-star'}`}></i>
-                              </div>
-                              <div>
-                                <h3 className={`text-lg font-bold font-tajawal mb-1 ${isCompleted ? 'text-[var(--accent)]' : 'text-[var(--text-main)]'}`}>
-                                  {habit.title}
-                                </h3>
-                                <span className="text-xs font-bold text-[var(--text-muted)] bg-[var(--bg-main)] px-2 py-1 rounded-md border border-[var(--border-subtle)]">
-                                  {timingName} بـ {habit.offsetMinutes} دقيقة
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <button onClick={() => handleEditClick(habit)} className="text-[var(--text-muted)] hover:text-blue-500 transition-colors px-2" aria-label="تعديل العادة">
-                                <i className="fa-solid fa-pen"></i>
-                              </button>
-                              <button onClick={() => deleteHabit(habit.id)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors px-2" aria-label="حذف العادة">
-                                <i className="fa-solid fa-trash-can"></i>
-                              </button>
-                            </div>
-                          </div>
-                          
-                          {/* Progress Bar */}
-                          <div className="flex flex-col gap-1.5 mt-2">
-                            <div className="flex justify-between text-xs font-tajawal font-bold text-[var(--text-muted)]">
-                              <span>{progressPercentage}%</span>
-                              <span>{habit.completedMinutes} / {habit.targetMinutes} دقيقة</span>
-                            </div>
-                            <div className="w-full h-2.5 bg-[var(--bg-main)] border border-[var(--border-subtle)] rounded-full overflow-hidden">
-                              <motion.div 
-                                className={`h-full ${isCompleted ? 'bg-[var(--accent)]' : 'bg-[var(--accent)]'}`}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progressPercentage}%` }}
-                                transition={{ duration: 0.5 }}
-                              />
-                            </div>
-                          </div>
-                          
-                          {/* Actions */}
-                          {!isCompleted ? (
-                            <div className="flex flex-col gap-3 mt-auto pt-4 border-t border-[var(--border-subtle)]">
-                              <div className="flex gap-2">
-                                <input 
-                                  type="number"
-                                  min="1"
-                                  placeholder="دقائق..."
-                                  className="w-20 px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] focus:border-[var(--accent)] outline-none text-[var(--text-main)] text-sm font-tajawal"
-                                  value={manualInputs[habit.id] || ""}
-                                  onChange={(e) => setManualInputs({...manualInputs, [habit.id]: e.target.value})}
-                                />
-                                <button 
-                                  onClick={() => addManualTime(habit.id)} 
-                                  className="flex-1 rounded-lg bg-[var(--bg-main)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-[var(--text-main)] text-sm font-bold font-tajawal transition-colors"
-                                >
-                                  إضافة إنجاز
-                                </button>
-                              </div>
-                              <button 
-                                onClick={() => markComplete(habit.id)} 
-                                className="w-full py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-bold font-tajawal hover:bg-[var(--accent-hover)] transition-colors flex items-center justify-center gap-2"
-                              >
-                                <i className="fa-solid fa-check"></i> إكمال العادة كلياً
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center gap-2 mt-auto pt-4 text-[var(--accent)] font-bold font-tajawal text-sm">
-                              <i className="fa-solid fa-circle-check text-xl"></i>
-                              تم إنجاز العادة بنجاح
-                            </div>
-                          )}
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
-                </div>
-              </div>
-            ))}
-          </div>
+          <HabitList 
+            groupedHabits={groupedHabits}
+            TIMINGS={TIMINGS}
+            prayerTimings={prayerTimings}
+            formatTime={formatTime}
+            handleEditClick={handleEditClick}
+            deleteHabit={deleteHabit}
+            addManualTime={addManualTime}
+            markComplete={markComplete}
+            manualInputs={manualInputs}
+            setManualInputs={setManualInputs}
+          />
         )}
       </div>
     </main>

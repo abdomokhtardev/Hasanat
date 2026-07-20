@@ -36,7 +36,7 @@ const LessonCard = ({ lesson }) => {
               <i className="fa-solid fa-book-open text-2xl"></i>
             </div>
             <div className="pill-glass px-3 py-1 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">
-              سلسلة
+              {lesson.type === "single" ? "حلقة" : "سلسلة"}
             </div>
           </div>
 

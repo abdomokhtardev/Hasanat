@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 const Salat = () => {
-  const [city, setCity] = useState("القاهرة");
-  const [displayCity, setDisplayCity] = useState("القاهرة");
+  const [city, setCity] = useState(() => localStorage.getItem("salat_city") || "القاهرة");
+  const [displayCity, setDisplayCity] = useState(() => localStorage.getItem("salat_city") || "القاهرة");
   const [searchInput, setSearchInput] = useState("");
   const [date, setDate] = useState({ hijri: "", readable: "" });
   const [timings, setTimings] = useState({});
@@ -79,6 +79,7 @@ const Salat = () => {
     e.preventDefault();
     if (searchInput.trim()) {
       setCity(searchInput);
+      localStorage.setItem("salat_city", searchInput.trim());
       setSearchInput("");
     }
   };
