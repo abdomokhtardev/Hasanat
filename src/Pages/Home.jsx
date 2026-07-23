@@ -33,13 +33,13 @@ const Home = () => {
   return (
     <main className="flex flex-col items-center px-4 pt-32 pb-20 min-h-screen bg-[var(--bg-main)]">
       {/* Calm Hero Section */}
-      <section className="w-full max-w-5xl text-center py-16 md:py-24 border-b border-[var(--border-glass)]">
+      <section className="w-full max-w-5xl text-center py-16 md:py-24 border-b border-[var(--border-subtle)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="w-16 h-16 mx-auto mb-8 bg-[var(--bg-card)] border border-[var(--border-glass)] rounded-full flex items-center justify-center text-[var(--accent)] shadow-sm">
+          <div className="w-16 h-16 mx-auto mb-8 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-full flex items-center justify-center text-[var(--accent)] shadow-sm">
             <i className="fa-solid fa-kaaba text-2xl"></i>
           </div>
 
@@ -58,7 +58,7 @@ const Home = () => {
               </button>
             </Link>
             <Link to="/azkar">
-              <button className="w-full sm:w-auto px-8 py-3 rounded-md bg-[var(--bg-card)] text-[var(--text-main)] font-medium border border-[var(--border-glass)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
+              <button className="w-full sm:w-auto px-8 py-3 rounded-md bg-[var(--bg-card)] text-[var(--text-main)] font-medium border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">
                 أذكار اليوم
               </button>
             </Link>

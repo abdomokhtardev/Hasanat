@@ -99,7 +99,7 @@ const Profile = () => {
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-12"
                   dir="ltr"
-                  autocomplete="current-password"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -123,7 +123,7 @@ const Profile = () => {
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-[var(--bg-main)] border border-[var(--border-subtle)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-12"
                 dir="ltr"
-                autocomplete="new-password"
+                autoComplete="new-password"
               />
             </div>
 

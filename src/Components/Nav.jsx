@@ -17,7 +17,9 @@ const Nav = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, isAdmin, logout } = useAuth();
 
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  // Single isActive check used for both desktop and mobile menus
+  const isActive = (path) =>
+    location.pathname === path || (path !== "/" && location.pathname.startsWith(path));
 
   return (
     <nav>
@@ -34,20 +36,17 @@ const Nav = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link, index) => {
-              const isActive = location.pathname === link.path ||
-                (link.path !== "/" && location.pathname.startsWith(link.path));
-              return (
-                <Link
-                  key={index}
-                  to={link.path}
-                  className={`text-sm font-medium transition-colors duration-300 ${isActive ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
-                    }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`text-sm font-medium transition-colors duration-300 ${
+                  isActive(link.path) ? "text-[var(--accent)] font-bold" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           {/* Controls */}
@@ -88,7 +87,7 @@ const Nav = () => {
             </button>
 
             {/* Mobile Toggle */}
-            <button onClick={toggleMobileMenu} className="md:hidden text-[var(--text-main)]" aria-label="فتح قائمة التنقل">
+            <button onClick={() => setIsMobileMenuOpen((o) => !o)} className="md:hidden text-[var(--text-main)]" aria-label="فتح قائمة التنقل">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"} />
               </svg>
@@ -99,20 +98,16 @@ const Nav = () => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 mt-4 w-full bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-subtle)] rounded-2xl p-4 flex flex-col gap-4 shadow-lg">
-            {navLinks.map((link, index) => {
-              const isActive = location.pathname === link.path ||
-                (link.path !== "/" && location.pathname.startsWith(link.path));
-              return (
-                <Link
-                  key={index}
-                  to={link.path}
-                  className={`text-center py-2 ${isActive ? "text-[var(--accent)] font-bold" : "text-[var(--text-main)]"}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`text-center py-2 ${isActive(link.path) ? "text-[var(--accent)] font-bold" : "text-[var(--text-main)]"}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
             
             <hr className="border-[var(--border-subtle)]" />
             

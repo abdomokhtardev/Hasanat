@@ -6,7 +6,7 @@ import EmptyState from "../Components/EmptyState.jsx";
 import { LessonCardSkeleton } from "../Components/Skeleton.jsx";
 
 const Lessons = () => {
-  const { lessons, loading, Spinner } = useData();
+  const { lessons, loading } = useData();
   const [selectedCategory, setSelectedCategory] = useState("الكل");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -68,12 +68,7 @@ const Lessons = () => {
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
           {loading ? (
             <>
-              <LessonCardSkeleton />
-              <LessonCardSkeleton />
-              <LessonCardSkeleton />
-              <LessonCardSkeleton />
-              <LessonCardSkeleton />
-              <LessonCardSkeleton />
+              {Array.from({ length: 6 }, (_, i) => <LessonCardSkeleton key={i} />)}
             </>
           ) : (
             <AnimatePresence>

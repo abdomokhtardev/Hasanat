@@ -2,6 +2,9 @@ import { useData } from "../hooks/UseData.js";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../Context/AuthContext";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 const extractVideoId = (url) => {
   if (!url) return null;
@@ -15,6 +18,7 @@ const Series = () => {
   const [currentSeries, setCurrentSeries] = useState(null);
   const [currentEpisode, setCurrentEpisode] = useState(null);
   const [watchedEpisodes, setWatchedEpisodes] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!loading && lessons.length > 0) {
@@ -25,13 +29,31 @@ const Series = () => {
       }
     }
 
-    const savedProgress = JSON.parse(localStorage.getItem("hasanat_progress")) || {};
-    if (savedProgress[seriesId]) {
-      setWatchedEpisodes(savedProgress[seriesId]);
-    }
-  }, [lessons, seriesId, loading]);
+    const fetchProgress = async () => {
+      let localProgress = JSON.parse(localStorage.getItem("hasanat_progress")) || {};
+      if (user) {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userRef);
+          if (docSnap.exists() && docSnap.data().progress && docSnap.data().progress[seriesId]) {
+            setWatchedEpisodes(docSnap.data().progress[seriesId]);
+            return;
+          }
+        } catch (err) {
+          console.error("Error fetching progress from Firebase", err);
+        }
+      }
+      if (localProgress[seriesId]) {
+        setWatchedEpisodes(localProgress[seriesId]);
+      }
+    };
 
-  const toggleWatched = (epId) => {
+    if (seriesId) {
+      fetchProgress();
+    }
+  }, [lessons, seriesId, loading, user]);
+
+  const toggleWatched = async (epId) => {
     let updatedWatched = [...watchedEpisodes];
     if (updatedWatched.includes(epId)) {
       updatedWatched = updatedWatched.filter(id => id !== epId);
@@ -43,6 +65,15 @@ const Series = () => {
     const savedProgress = JSON.parse(localStorage.getItem("hasanat_progress")) || {};
     savedProgress[seriesId] = updatedWatched;
     localStorage.setItem("hasanat_progress", JSON.stringify(savedProgress));
+
+    if (user) {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        await setDoc(userRef, { progress: { [seriesId]: updatedWatched } }, { merge: true });
+      } catch (err) {
+        console.error("Error saving progress to Firebase", err);
+      }
+    }
   };
 
   if (loading || !currentSeries) {
@@ -60,11 +91,17 @@ const Series = () => {
   const hasPrev = currentEpisodeIndex > 0;
 
   const goToNext = () => {
-    if (hasNext) setCurrentEpisode(currentSeries.episodes[currentEpisodeIndex + 1]);
+    if (hasNext) {
+      setCurrentEpisode(currentSeries.episodes[currentEpisodeIndex + 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const goToPrev = () => {
-    if (hasPrev) setCurrentEpisode(currentSeries.episodes[currentEpisodeIndex - 1]);
+    if (hasPrev) {
+      setCurrentEpisode(currentSeries.episodes[currentEpisodeIndex - 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -123,8 +160,8 @@ const Series = () => {
                 <button
                   onClick={() => toggleWatched(currentEpisode.id)}
                   className={`px-6 py-3 rounded-full font-tajawal font-bold text-sm transition-all flex items-center gap-2 ${watchedEpisodes.includes(currentEpisode.id)
-                      ? "bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/30"
-                      : "bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                    ? "bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/30"
+                    : "bg-[var(--bg-main)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
                     }`}
                 >
                   {watchedEpisodes.includes(currentEpisode.id) ? (
@@ -147,22 +184,20 @@ const Series = () => {
             <button
               onClick={goToNext}
               disabled={!hasNext}
-              className={`flex-1 py-3 px-4 rounded-xl font-bold font-tajawal flex items-center justify-center gap-2 transition-all ${
-                hasNext 
-                ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] shadow-md" 
+              className={`flex-1 py-3 px-4 rounded-xl font-bold font-tajawal flex items-center justify-center gap-2 transition-all ${hasNext
+                ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] shadow-md"
                 : "bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] opacity-50 cursor-not-allowed"
-              }`}
+                }`}
             >
               <i className="fa-solid fa-forward"></i> الحلقة التالية
             </button>
             <button
               onClick={goToPrev}
               disabled={!hasPrev}
-              className={`flex-1 py-3 px-4 rounded-xl font-bold font-tajawal flex items-center justify-center gap-2 transition-all ${
-                hasPrev 
-                ? "bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]" 
+              className={`flex-1 py-3 px-4 rounded-xl font-bold font-tajawal flex items-center justify-center gap-2 transition-all ${hasPrev
+                ? "bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
                 : "bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] opacity-50 cursor-not-allowed"
-              }`}
+                }`}
             >
               الحلقة السابقة <i className="fa-solid fa-backward"></i>
             </button>
@@ -173,66 +208,69 @@ const Series = () => {
         {/* Apple Style Playlist */}
         {currentSeries.type !== 'single' && (
           <div className="w-full card-glass p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-            <h3 className="text-2xl font-bold text-[var(--text-main)] font-amiri">الحلقات</h3>
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-tajawal text-[var(--text-muted)] font-medium">
-                إنجاز: {progressPercentage}%
-              </span>
-              <div className="w-24 h-2 bg-[var(--border-subtle)] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[var(--accent)]"
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+              <h3 className="text-2xl font-bold text-[var(--text-main)] font-amiri">الحلقات</h3>
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-tajawal text-[var(--text-muted)] font-medium">
+                  إنجاز: {progressPercentage}%
+                </span>
+                <div className="w-24 h-2 bg-[var(--border-subtle)] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[var(--accent)]"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-1">
-            {currentSeries.episodes.map((item, index) => {
-              const isWatched = watchedEpisodes.includes(item.id);
-              const isCurrent = currentEpisode?.id === item.id;
+            <div className="flex flex-col gap-1">
+              {currentSeries.episodes.map((item, index) => {
+                const isWatched = watchedEpisodes.includes(item.id);
+                const isCurrent = currentEpisode?.id === item.id;
 
-              return (
-                <div key={item.id} className="w-full">
-                  <button
-                    onClick={() => setCurrentEpisode(item)}
-                    className={`w-full text-right px-4 py-4 rounded-xl flex items-center justify-between transition-all ${isCurrent
+                return (
+                  <div key={item.id} className="w-full">
+                    <button
+                      onClick={() => {
+                        setCurrentEpisode(item);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-full text-right px-4 py-4 rounded-xl flex items-center justify-between transition-all ${isCurrent
                         ? "bg-[var(--accent-light)] text-[var(--accent)]"
                         : "hover:bg-[var(--bg-card)] hover:shadow-sm text-[var(--text-main)]"
-                      }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className={`text-sm w-6 text-center font-tajawal font-bold ${isCurrent ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}`}>
-                        {index + 1}
-                      </span>
-                      <span className={`text-base font-tajawal font-medium line-clamp-1 ${isCurrent ? "font-bold" : ""}`}>
-                        {item.title}
-                      </span>
-                    </div>
+                        }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className={`text-sm w-6 text-center font-tajawal font-bold ${isCurrent ? "text-[var(--accent)]" : "text-[var(--text-muted)]"}`}>
+                          {index + 1}
+                        </span>
+                        <span className={`text-base font-tajawal font-medium line-clamp-1 ${isCurrent ? "font-bold" : ""}`}>
+                          {item.title}
+                        </span>
+                      </div>
 
-                    <div className="shrink-0 flex items-center gap-4">
-                      {isCurrent && (
-                        <div className="flex items-center gap-1">
-                          <span className="w-1 h-3 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                          <span className="w-1 h-4 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                          <span className="w-1 h-2 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                        </div>
-                      )}
-                      {isWatched && !isCurrent && (
-                        <i className="fa-solid fa-check text-[var(--accent)] opacity-80 text-sm"></i>
-                      )}
-                    </div>
-                  </button>
-                  {/* Simple line between episodes */}
-                  {index < currentSeries.episodes.length - 1 && (
-                    <div className="w-[calc(100%-2rem)] mx-auto h-px bg-[var(--border-subtle)] opacity-60 my-1"></div>
-                  )}
-                </div>
-              );
-            })}
+                      <div className="shrink-0 flex items-center gap-4">
+                        {isCurrent && (
+                          <div className="flex items-center gap-1">
+                            <span className="w-1 h-3 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                            <span className="w-1 h-4 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                            <span className="w-1 h-2 bg-[var(--accent)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                          </div>
+                        )}
+                        {isWatched && !isCurrent && (
+                          <i className="fa-solid fa-check text-[var(--accent)] opacity-80 text-sm"></i>
+                        )}
+                      </div>
+                    </button>
+                    {/* Simple line between episodes */}
+                    {index < currentSeries.episodes.length - 1 && (
+                      <div className="w-[calc(100%-2rem)] mx-auto h-px bg-[var(--border-subtle)] opacity-60 my-1"></div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
         )}
 
       </div>
